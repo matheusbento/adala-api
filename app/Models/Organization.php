@@ -46,4 +46,9 @@ class Organization extends Model
     {
         return $this->belongsToMany(User::class, 'user_organizations', 'organization_id', 'user_id');
     }
+
+    public function folders(): HasMany
+    {
+        return $this->hasMany(SiloFolder::class);
+    }
 }

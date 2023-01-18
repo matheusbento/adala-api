@@ -31,12 +31,24 @@ class UserController extends Controller
         return response()->json([
                 'status' => 'success',
                 'user' => new UserResource($user),
-                'authorisation' => [
+                'authorization' => [
                     'token' => $token,
                     'type' => 'bearer',
                 ]
             ]);
+    }
 
+    public function me(Request $request)
+    {
+        $user = Auth::user();
+        return response()->json([
+                'status' => 'success',
+                'user' => new UserResource($user),
+                'authorization' => [
+                    'token' => str_replace('bearer ' , '', $request->header('Authorization')),
+                    'type' => 'bearer',
+                ]
+            ]);
     }
 
     public function register(Request $request){
@@ -57,7 +69,7 @@ class UserController extends Controller
             'status' => 'success',
             'message' => 'User created successfully',
             'user' => new UserResource($user),
-            'authorisation' => [
+            'authorization' => [
                 'token' => $token,
                 'type' => 'bearer',
             ]
@@ -78,7 +90,7 @@ class UserController extends Controller
         return response()->json([
             'status' => 'success',
             'user' => new UserResource(Auth::user()),
-            'authorisation' => [
+            'authorization' => [
                 'token' => Auth::refresh(),
                 'type' => 'bearer',
             ]

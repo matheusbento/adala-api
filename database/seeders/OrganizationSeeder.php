@@ -16,7 +16,7 @@ class OrganizationSeeder extends Seeder
      */
     public function run(User $user)
     {
-        $organization = Organization::factory()->create(['owner_id'=>$user->id]);
+        $organization = Organization::factory()->create(['owner_id' => $user->id]);
 
         echo '> Seeding new Organization: ' . $organization->name . "\n";
 
@@ -33,10 +33,10 @@ class OrganizationSeeder extends Seeder
             $organization
         );
 
-        echo '> Giving Permissions to User: ' . $user->email . " access Organization: " .$organization->name . "\n";
+        echo '> Giving Permissions to User: ' . $user->email . " access Organization: " . $organization->name . "\n";
 
         $this->call(CubeSeeder::class, false, [
             'organization' => $organization,
-        ]);   
+        ]);
     }
 }

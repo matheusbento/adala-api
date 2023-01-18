@@ -2,20 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
-use Spatie\Permission\Traits\HasRoles;
 use Propaganistas\LaravelFakeId\RoutesWithFakeIds;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
+    use HasRoles;
     use RoutesWithFakeIds;
 
     protected $appends = ['fake_id'];
@@ -50,11 +51,11 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
-     /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
+    /**
+    * Get the identifier that will be stored in the subject claim of the JWT.
+    *
+    * @return mixed
+    */
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -70,7 +71,8 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    public function getFakeIdAttribute() {
+    public function getFakeIdAttribute()
+    {
         return $this->getRouteKey();
     }
 

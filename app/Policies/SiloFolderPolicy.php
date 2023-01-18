@@ -3,15 +3,15 @@
 namespace App\Policies;
 
 use App\Constants\Permissions;
-use App\Models\Cube;
+use App\Models\SiloFolder;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class CubePolicy
+class SiloFolderPolicy
 {
     use HandlesAuthorization;
 
-    /**
+   /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -19,19 +19,19 @@ class CubePolicy
      */
     public function viewAny(User $user)
     {
-        return $user->can(Permissions::BASLAKE_CUBES_ACCESS);
+        return $user->can(Permissions::BASLAKE_DATASETS_ACCESS);
     }
 
     /**
      * Determine whether the user can view the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Models\SiloFolder  $folder
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Cube $cube)
+    public function view(User $user, SiloFolder $folder)
     {
-        return $user->hasPermissionTo(Permissions::BASLAKE_CUBES_ACCESS, null, $cube->organization);
+        return $user->hasPermissionTo(Permissions::BASLAKE_DATASETS_ACCESS, null, $folder->organization);
     }
 
     /**
@@ -42,55 +42,54 @@ class CubePolicy
      */
     public function create(User $user)
     {
-        return $user->can(Permissions::BASLAKE_CUBES_MANAGE);
+        return $user->can(Permissions::BASLAKE_DATASETS_MANAGE);
     }
 
     /**
      * Determine whether the user can update the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Models\SiloFolder  $folder
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function update(User $user, Cube $cube)
+    public function update(User $user, SiloFolder $folder)
     {
-        return true;
-        return $user->hasPermissionTo(Permissions::BASLAKE_CUBES_MANAGE, null, $cube->organization);
+        return $user->hasPermissionTo(Permissions::BASLAKE_DATASETS_MANAGE, null, $folder->organization);
     }
 
     /**
      * Determine whether the user can delete the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Models\SiloFolder  $folder
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, Cube $cube)
+    public function delete(User $user, SiloFolder $folder)
     {
-        return $user->can(Permissions::BASLAKE_CUBES_MANAGE);
+        return $user->can(Permissions::BASLAKE_DATASETS_MANAGE);
     }
 
     /**
      * Determine whether the user can restore the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Models\SiloFolder  $folder
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function restore(User $user, Cube $cube)
+    public function restore(User $user, SiloFolder $folder)
     {
-        return $this->update($user, $cube);
+        return $this->update($user, $folder);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Models\SiloFolder  $folder
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function forceDelete(User $user, Cube $cube)
+    public function forceDelete(User $user, SiloFolder $folder)
     {
-        return false;
+       return false;
     }
 }
