@@ -31,6 +31,7 @@ class StoreSiloFileRequest extends FormRequest
             ],
             'tags' => [
                 'array',
+                'nullable'
             ],
             'tags.*' => [
                 'required',

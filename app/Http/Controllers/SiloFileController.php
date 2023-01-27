@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSiloFileRequest;
 use App\Http\Resources\SiloFileResource;
+use App\Jobs\PreProcessSiloFileByIdJob;
 use App\Models\File;
 use App\Models\Organization;
 use App\Models\SiloFile;
@@ -50,6 +51,10 @@ class SiloFileController extends Controller
             $builder->where('name', 'LIKE', "%{$search}%");
         }
 
+        if ($status = $request->input('status')) {
+            $builder->whereCurrentStatus($status);
+        }
+
         $folders = $request->input('all') ? $builder->get() : $builder->paginate($request->input('per_page', intval(config('general.pagination_size'))))
             ->appends($request->only(['per_page', 'order_by', 'direction', 'q']));
 
@@ -84,6 +89,40 @@ class SiloFileController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\SiloFile  $folder
+     * @return \Illuminate\Http\Response
+     */
+    public function showAttributes(Organization $organization, SiloFolder $folder, SiloFile $file)
+    {
+        $onlyAttributes = true;
+        return new SiloFileResource($file->load(['attributes']), $onlyAttributes);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\SiloFile  $folder
+     * @return \Illuminate\Http\Response
+     */
+    public function showMultipleAttributes(Request $request, Organization $organization, SiloFolder $folder)
+    {
+        $request->validate([
+            'files' => [
+                'array',
+            ],
+            'files.*' => [
+                'required',
+                //TODO ADD VALIDATION
+            ],
+        ]);
+        $files = $request->get('files');
+        $siloFiles = SiloFile::whereIn('id', $files)->with(['attributes'])->get();
+        return SiloFileResource::collection($siloFiles, ['only_attributes' => true]);
+    }
+
+    /**
      * Update the specified resource in storage.
      *
      * @param  \App\Http\Requests\StoreSiloFileRequest  $request
@@ -107,6 +146,7 @@ class SiloFileController extends Controller
 
             /* Check file type */
             $file_mime = $file->getMimeType();
+            // dump($file_mime);
             abort_if(!in_array($file_mime, SiloFile::ACCEPTABLE_FILE_TYPES), 402, 'File type not allowed. Please try again.');
 
             /* Check file size */
@@ -130,9 +170,13 @@ class SiloFileController extends Controller
             $documentFile = $siloFile->file;
         }
 
-        $documentFile->tags()->sync($request->input('tags'));
+        // $documentFile->tags()->sync($request->input('tags'));
 
         $siloFile->save();
+
+        $siloFile->setStatus(SiloFile::CREATED_FILE_STATUS);
+
+        dispatch(new PreProcessSiloFileByIdJob($siloFile));
 
         return $siloFile;
     }
@@ -162,6 +206,8 @@ class SiloFileController extends Controller
 
     private function getRelationshipsToLoad()
     {
-        return [];
+        return [
+            'file',
+        ];
     }
 }

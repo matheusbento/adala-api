@@ -15,6 +15,19 @@ class Organization extends Model
     use HasFactory;
     use RoutesWithFakeIds;
 
+    public static function boot()
+    {
+        parent::boot();
+
+        self::created(function($model){
+            $this->folders()->create([
+                'name' => "Default Folder",
+                'description' => "Default",
+                'owner_id' => $this->owner->id,
+            ]);
+        });
+    }
+
     protected $fillable = [
         'name',
         'description',

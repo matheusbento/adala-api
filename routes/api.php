@@ -59,7 +59,9 @@ Route::prefix('v1')->group(function () {
                 Route::delete('/{folder}', [SiloFolderController::class, 'destroy'])->middleware('can:delete,folder');
 
                 Route::get('/{folder}/files', [SiloFileController::class, 'index'])->middleware('can:viewAny,App\Models\SiloFile');
+                Route::get('/{folder}/files/attributes', [SiloFileController::class, 'showMultipleAttributes']);
                 Route::get('/{folder}/files/{file}', [SiloFileController::class, 'show'])->middleware('can:view,file');
+                Route::get('/{folder}/files/{file}/attributes', [SiloFileController::class, 'showAttributes'])->middleware('can:view,file');
                 Route::post('/{folder}/files', [SiloFileController::class, 'store'])->middleware('can:create,App\Models\SiloFile');
                 Route::put('/{folder}/files/{file}', [SiloFileController::class, 'update'])->middleware('can:update,file');
                 Route::delete('/{folder}/files/{file}', [SiloFileController::class, 'destroy'])->middleware('can:delete,file');
