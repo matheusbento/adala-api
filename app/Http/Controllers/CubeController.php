@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCubeRequest;
-use App\Http\Resources\CubeFullResource;
 use App\Http\Resources\CubeResource;
+use App\Jobs\ProcessLoadCubeByIdJob;
 use App\Models\Cube;
 use App\Models\Organization;
+use App\Models\SiloFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\App;
 use Illuminate\Validation\Rule;
 
 class CubeController extends Controller
@@ -43,7 +44,7 @@ class CubeController extends Controller
 
         $builder = $organization->cubes()->with($this->getRelationshipsToLoad())
             ->withCount($this->getRelationshipsToLoad())
-            ->orderBy($request->input('order_by', 'name'), $request->input('direction', 'asc'));
+            ->orderBy($request->input('order_by', 'id'), $request->input('direction', 'desc'));
 
         if ($search = $request->input('q')) {
             $builder->where('name', 'LIKE', "%{$search}%");
@@ -66,10 +67,34 @@ class CubeController extends Controller
         $data = $request->validated();
 
         $data['organization_id'] = $organization->id;
-        $data['identifier'] = Str::random(50);
         $cube = $this->updateCube(new Cube(), $data);
 
-        return new CubeFullResource($cube->load(['metadata']));
+        $folder = App::make('fakeid')->decode($request->get('folder'));
+        $columns = $request->get('columns', []);
+        $filesEncoded = collect(array_keys($columns));
+
+        $files = $filesEncoded->map(fn ($file) => SiloFile::find(App::make('fakeid')->decode($file)));
+        $cube->files()->attach($files->pluck('id')->all());
+
+        foreach ($columns as $key => $column) {
+            $fileId = App::make('fakeid')->decode($key);
+            $file = $files->where('id', $fileId)->first();
+                $cube->attributes()->create([
+                    'type' => get_class($file),
+                    'name' => $file->id,
+                    'attributes' => ["file_id" => $file->id, "attributes" => $column],
+                ]);
+        }
+
+        $cube->folders()->attach([$folder]);
+
+        $cube->setStatus(Cube::CREATING_STATUS);
+        $historyType = Cube::CREATED_HISTORY_TYPE;
+        $cube->addHistory($historyType, Cube::HISTORY_MESSAGES[$historyType]);
+
+        dispatch(new ProcessLoadCubeByIdJob($cube));
+
+        return new CubeResource($cube->load(['metadata']));
     }
 
     /**
@@ -80,7 +105,7 @@ class CubeController extends Controller
      */
     public function show(Organization $organization, Cube $cube)
     {
-        return new CubeFullResource($cube->load(['metadata']));
+        return new CubeResource($cube->load(['metadata', 'history', 'files']));
     }
 
     /**
@@ -96,15 +121,15 @@ class CubeController extends Controller
         $data = $request->validated();
         $cube = $this->updateCube($cube, $data);
 
-        return new CubeFullResource($cube->load(['metadata']));
+        $historyType = Cube::EDITED_HISTORY_TYPE;
+        $cube->addHistory($historyType, Cube::HISTORY_MESSAGES[$historyType]);
+
+        return new CubeResource($cube->load(['metadata']));
     }
 
     private function updateCube(Cube $cube, array $data)
     {
         $cube->fill($data);
-        // dd($cube);
-
-        $model = Arr::get($data, 'model');
 
         $cube->save();
 
@@ -120,22 +145,8 @@ class CubeController extends Controller
             'field' => 'end_date',
             'value' => Arr::get($data, 'end_date'),
         ];
-        $metadata = array_merge($metadata, Arr::get($data, 'metadata'));
+        $metadata = array_merge($metadata, Arr::get($data, 'metadata', []));
         $cube->metadata()->createMany($metadata);
-
-        // update model
-        $model['cubes'][0]['id'] = $cube->id;
-        $model['cubes'][0]['name'] = $cube->identifier;
-
-        $model['cubes'][0]['infos'] = [];
-        foreach ($metadata as $value) {
-            $model['cubes'][0]['infos'][$value['field']] = $value['value'];
-        }
-
-        // dd($model);
-        $cube->model = $model;
-
-        $cube->save();
 
         return $cube;
     }

@@ -53,6 +53,7 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            // 'http_handler' => new App\GuzzleHandler(),
         ],
 
         'minio' => [
@@ -63,6 +64,14 @@ return [
             'secret' => env('AWS_SECRET'),
             'region' => env('AWS_REGION'),
             'bucket' => env('AWS_BUCKET'),
+            // 'http_handler' => new App\GuzzleHandler(),
+            'curl.options' => [
+                // CURLOPT_CONNECTTIMEOUT => 5,
+                // CURLOPT_TIMEOUT => 10,
+                CURLOPT_SSL_VERIFYPEER => 0,
+                CURLOPT_SSL_VERIFYHOST => 0,
+                'verify_peer' => 0,
+            ],
         ],
 
     ],

@@ -11,6 +11,7 @@ use App\Models\SiloFile;
 use App\Models\SiloFolder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
@@ -111,13 +112,24 @@ class SiloFileController extends Controller
         $request->validate([
             'files' => [
                 'array',
+                'required',
             ],
             'files.*' => [
                 'required',
-                //TODO ADD VALIDATION
+                function ($attribute, $value, $fail) use ($organization) {
+                    $file = SiloFile::find(App::make('fakeid')->decode($value));
+                    if (!isset($file)) {
+                        $fail("File doens't exists");
+                    }
+
+                    if (isset($file) && $file->folder->organization_id != $organization->id) {
+                        $fail("File doens't belongs to the same organization");
+                    }
+                },
             ],
         ]);
-        $files = $request->get('files');
+        $filesEncoded = collect($request->get('files', []));
+        $files = $filesEncoded->map(fn ($file) => App::make('fakeid')->decode($file));
         $siloFiles = SiloFile::whereIn('id', $files)->with(['attributes'])->get();
         return SiloFileResource::collection($siloFiles, ['only_attributes' => true]);
     }

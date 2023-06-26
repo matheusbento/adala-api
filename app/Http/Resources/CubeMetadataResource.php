@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CubeFullResource extends JsonResource
+class CubeMetadataResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,12 +15,9 @@ class CubeFullResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->fake_id,
-            'identifier' => $this->identifier,
-            'name' => $this->name,
-            'description' => $this->description,
-            'model' => $this->model,
-            'metadata' => $this->whenLoaded('metadata'),
+            'id' => $this->id,
+            'field' => $this->field,
+            'value' => $this->value,
         ];
     }
 }

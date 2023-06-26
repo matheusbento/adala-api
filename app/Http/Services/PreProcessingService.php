@@ -19,7 +19,7 @@ class PreProcessingService
                 'object_path' => $path,
             ]);
 
-            if($response->status() == 500){
+            if($response->status() == 500) {
                 throw new Exception("File doesn't exists");
             }
 

@@ -13,6 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::get('/', function () {
-//     return "REDIRECIONADO PARA WEB";
-// });
+Route::get('/', function () {
+    return phpinfo();
+});

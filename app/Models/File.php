@@ -93,7 +93,7 @@ class File extends Model
     {
         $disk = $disk === null ? config('filesystems.cloud') : $disk;
         $folder = preg_replace('/\/$/', '', config('filesystems.disks.' . $disk . '.folder'));
-        $file_path = Storage::disk($disk)->put($folder . '/' . $path, $file);
+        $file_path = Storage::disk($disk)->put($folder . '/' . $path, $file, ['verify' => false]);
 
         return [
             'drive' => $disk,

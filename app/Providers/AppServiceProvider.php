@@ -2,8 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Services\CubeProcessingService;
+use App\Http\Services\CubeService;
 use App\Http\Services\PreProcessingService;
-use App\Http\Services\ProcessingService;
 use App\Http\Services\SiloFileService;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,8 +18,9 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind('siloFileService', SiloFileService::class);
+        $this->app->bind('cubeService', CubeService::class);
         $this->app->bind('preProcessingService', PreProcessingService::class);
-        $this->app->bind('processingService', ProcessingService::class);
+        $this->app->bind('cubeProcessingService', CubeProcessingService::class);
     }
 
     /**

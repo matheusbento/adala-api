@@ -6,6 +6,7 @@ use App\Models\Traits\HasStatuses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\UploadedFile;
 use Propaganistas\LaravelFakeId\RoutesWithFakeIds;
@@ -58,9 +59,9 @@ class SiloFile extends File
         return $this->belongsTo(File::class);
     }
 
-    public function attributes(): HasMany
+    public function attributes(): MorphMany
     {
-        return $this->hasMany(SiloFileAttributes::class, 'silo_file_id');
+        return $this->morphMany(SiloFileAttributes::class, 'parent');
     }
 
     public function uploadFile(UploadedFile $file): array

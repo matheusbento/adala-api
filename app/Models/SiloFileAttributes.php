@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Models\Casts\JsonCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class SiloFileAttributes extends Model
 {
@@ -13,8 +13,8 @@ class SiloFileAttributes extends Model
 
     protected $table = 'silo_file_attributes';
 
-    const TYPE_TABLE = "table";
-    const TYPE_COMPLEX_KEY = "complex_key";
+    public const TYPE_TABLE = 'table';
+    public const TYPE_COMPLEX_KEY = 'complex_key';
 
     protected $casts = [
         'attributes' => JsonCast::class,
@@ -27,8 +27,8 @@ class SiloFileAttributes extends Model
         'silo_file_id',
     ];
 
-    public function siloFile(): BelongsTo
+    public function model(): MorphTo
     {
-        return $this->belongsTo(SiloFile::class);
+        return $this->morphTo();
     }
 }

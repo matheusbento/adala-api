@@ -17,9 +17,12 @@ class CubeResource extends JsonResource
         return [
             'id' => $this->fake_id,
             'identifier' => $this->identifier,
+            'current_status' => $this->current_status,
             'name' => $this->name,
             'description' => $this->description,
-            'metadata' => $this->whenLoaded('metadata'),
+            'files' => $this->whenLoaded('files', SiloFileResource::collection($this->files)),
+            'metadata' => $this->whenLoaded('metadata', CubeMetadataResource::collection($this->metadata)),
+            'history' => $this->whenLoaded('history', HistoryEntryResource::collection($this->history)),
         ];
     }
 }

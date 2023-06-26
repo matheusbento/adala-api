@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -28,30 +28,39 @@ class UserController extends Controller
         }
 
         $user = Auth::user();
+
+        // if (!$user->organizations->count()) {
+        //     return response()->json([
+        //         'status' => 'error',
+        //         'message' => 'User doesn\t have organization',
+        //     ], 401);
+        // }
+
         return response()->json([
-                'status' => 'success',
-                'user' => new UserResource($user),
-                'authorization' => [
-                    'token' => $token,
-                    'type' => 'bearer',
-                ]
-            ]);
+            'status' => 'success',
+            'user' => new UserResource($user),
+            'authorization' => [
+                'token' => $token,
+                'type' => 'bearer',
+            ],
+        ]);
     }
 
     public function me(Request $request)
     {
         $user = Auth::user();
         return response()->json([
-                'status' => 'success',
-                'user' => new UserResource($user),
-                'authorization' => [
-                    'token' => str_replace('bearer ' , '', $request->header('Authorization')),
-                    'type' => 'bearer',
-                ]
-            ]);
+            'status' => 'success',
+            'user' => new UserResource($user),
+            'authorization' => [
+                'token' => str_replace('bearer ', '', $request->header('Authorization')),
+                'type' => 'bearer',
+            ],
+        ]);
     }
 
-    public function register(Request $request){
+    public function register(Request $request)
+    {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -72,7 +81,7 @@ class UserController extends Controller
             'authorization' => [
                 'token' => $token,
                 'type' => 'bearer',
-            ]
+            ],
         ]);
     }
 
@@ -93,8 +102,7 @@ class UserController extends Controller
             'authorization' => [
                 'token' => Auth::refresh(),
                 'type' => 'bearer',
-            ]
+            ],
         ]);
     }
-
 }

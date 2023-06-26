@@ -4,11 +4,21 @@ namespace App\Http\Requests;
 
 use App\Models\Cube;
 use App\Models\CubeMetadata;
+use App\Models\SiloFile;
+use App\Models\SiloFolder;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\App;
 use Illuminate\Validation\Rule;
 
 class StoreCubeRequest extends FormRequest
 {
+    protected function nestedAttributeKeyBack(string $attribute, int $count = 1): string
+    {
+        $holidayKeys = explode('.', $attribute);
+        $keysToKeep = array_slice($holidayKeys, 0, -$count);
+        return implode('.', $keysToKeep);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -19,12 +29,12 @@ class StoreCubeRequest extends FormRequest
         return [
             'name' => [
                 'string',
-                $this->isMethod('PATCH') ? 'sometimes' : null,
+                $this->isMethod('PUT') ? 'sometimes' : null,
                 Rule::unique(Cube::class)->where('organization_id', $this->organization->id)->ignore(optional($this->cube)->id)->whereNull('deleted_at'),
             ],
             'description' => [
                 'string',
-                $this->isMethod('PATCH') ? 'sometimes' : null,
+                $this->isMethod('PUT') ? 'sometimes' : null,
             ],
             'start_date' => [
                 'sometimes',
@@ -40,99 +50,70 @@ class StoreCubeRequest extends FormRequest
                 'after_or_equal:start_date',
             ],
             'metadata' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
+                $this->isMethod('PUT') ? 'sometimes' : null,
                 'array',
             ],
             'metadata.*.field' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
+                $this->isMethod('PUT') ? 'sometimes' : null,
                 'string',
-                // Rule::unique(CubeMetadata::class)->where('cube_id', $this->cube->id),
+                $this->isMethod('PUT') ? Rule::unique(CubeMetadata::class)->where('cube_id', $this->cube->id) : null,
             ],
             'metadata.*.value' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
+                $this->isMethod('PUT') ? 'sometimes' : null,
                 'string',
             ],
-            'model' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
+            'folder' => [
+                $this->isMethod('PUT') ? 'sometimes' : null,
+                'integer',
+                function ($attribute, $value, $fail) {
+                    $folder = SiloFolder::find(App::make('fakeid')->decode($value));
+                    if (!isset($folder)) {
+                        $fail("Folder doens't exists");
+                    }
+
+                    if (isset($folder) && $folder->organization_id != $this->organization->id) {
+                        $fail("Folder doens't belongs to the same organization");
+                    }
+                },
+            ],
+            'columns' => [
+                $this->isMethod('PUT') ? 'sometimes' : 'required',
                 'array',
+                function ($attribute, $value, $fail) {
+                    $keys = array_keys($value);
+                    foreach ($keys as $key) {
+                        $file = SiloFile::find(App::make('fakeid')->decode($key));
+                        if (!isset($file)) {
+                            $fail("File doens't exists");
+                        }
+
+                        if (isset($file) && $file->folder->organization_id != $this->organization->id) {
+                            $fail("File doens't belongs to the same organization");
+                        }
+                    }
+                },
             ],
-            'model.dimensions' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'array',
-            ],
-            'model.dimensions.*.name' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.dimensions.*.role' => [
-                'sometimes',
-                'string',
-            ],
-            'model.dimensions.*.levels.*' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'array',
-            ],
-            'model.dimensions.*.levels.*.name' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.dimensions.*.levels.*.label' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.dimensions.*.levels.*.attributes' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'array',
-            ],
-            'model.cubes' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'array',
-            ],
-            'model.cubes.*.id' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-            ],
-            'model.cubes.*.name' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.cubes.*.dimensions.*' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.cubes.*.measures' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'array',
-            ],
-            'model.cubes.*.measures.*.name' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.cubes.*.measures.*.label' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.cubes.*.aggregates' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'array',
-            ],
-            'model.cubes.*.aggregates.*.name' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-            ],
-            'model.cubes.*.aggregates.*.measure' => [
-                'sometimes',
-                'string',
-            ],
-            'model.cubes.*.aggregates.*.function' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-                'string',
-                Rule::in(['sum', 'count']),
-            ],
-            'model.cubes.*.mappings' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
-            ],
-            'model.cubes.*.info' => [
-                $this->isMethod('PATCH') ? 'sometimes' : null,
+            'columns.*' => [
+                $this->isMethod('PUT') ? 'sometimes' : null,
+                function ($attribute, $value, $fail) {
+                    $attributePrefix = $this->nestedAttributeKeyBack($attribute);
+                    $columns = $this->{"${attributePrefix}"};
+                    foreach ($columns as $key => $column) {
+                        $file = SiloFile::find(App::make('fakeid')->decode($key));
+                        foreach ($column as $tableName => $values) {
+                            // dd($file->attributes);
+                            $attribute = $file->attributes->where('type', 'table')->where('name', $tableName)->first();
+                            $attributeNames = $attribute->attributes->pluck('name');
+                            $values = collect($values);
+
+                            foreach ($values as $value) {
+                                if (!in_array($value, $attributeNames->all())) {
+                                    $fail("attribute '{$value}' for table '{$tableName}' in file '{$file->name}' doens't exists");
+                                }
+                            }
+                        }
+                    }
+                },
             ],
         ];
     }

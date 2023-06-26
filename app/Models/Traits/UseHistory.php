@@ -9,7 +9,6 @@ use App\Models\HistoryEntry;
 
 /**
  * @property-read \App\Models\HistoryEntry[]|\Illuminate\Database\Eloquent\Collection $history {@see \App\Models\Traits\UseHistory::history()}
- * @property-read int|null $worker_history_entries_count
  * @mixin \Eloquent
  */
 trait UseHistory

@@ -17,7 +17,7 @@ class JsonCast implements CastsAttributes
      */
     public function get($model, $key, $value, $attributes)
     {
-        return json_decode($value, true);
+        return collect(json_decode($value, true));
     }
 
     /**
