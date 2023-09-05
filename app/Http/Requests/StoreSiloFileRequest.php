@@ -4,10 +4,9 @@ namespace App\Http\Requests;
 
 use App\Models\SiloFile;
 use App\Models\Tag;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreSiloFileRequest extends FormRequest
+class StoreSiloFileRequest extends BaseRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -31,7 +30,7 @@ class StoreSiloFileRequest extends FormRequest
             ],
             'tags' => [
                 'array',
-                'nullable'
+                'nullable',
             ],
             'tags.*' => [
                 'required',

@@ -71,6 +71,8 @@ class SiloFileController extends Controller
     public function store(StoreSiloFileRequest $request, Organization $organization, SiloFolder $folder)
     {
         $data = $request->validated();
+        $file = $request->file('file');
+        $data['file'] = $file;
         $data['owner_id'] = Auth::user()->id;
         $data['folder_id'] = $folder->id;
         $cube = $this->updateSiloFile(new SiloFile(), $organization, $request, $data);
@@ -158,7 +160,6 @@ class SiloFileController extends Controller
 
             /* Check file type */
             $file_mime = $file->getMimeType();
-            // dump($file_mime);
             abort_if(!in_array($file_mime, SiloFile::ACCEPTABLE_FILE_TYPES), 402, 'File type not allowed. Please try again.');
 
             /* Check file size */

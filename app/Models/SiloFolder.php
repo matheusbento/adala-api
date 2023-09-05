@@ -22,6 +22,8 @@ class SiloFolder extends Model
         'name',
         'owner_id',
         'organization_id',
+        'category_id',
+        'is_dataflow',
     ];
 
     protected $appends = ['fake_id'];
@@ -39,6 +41,11 @@ class SiloFolder extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function getFakeIdAttribute()

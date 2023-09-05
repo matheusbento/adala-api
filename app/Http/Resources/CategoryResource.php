@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SiloFolderResource extends JsonResource
+class CategoryResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,13 +15,11 @@ class SiloFolderResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->fake_id,
+            'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'is_dataflow' => $this->is_dataflow,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'category' => $this->whenLoaded('category', fn () => new CategoryResource($this->category)),
         ];
     }
 }

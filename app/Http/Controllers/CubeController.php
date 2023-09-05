@@ -79,11 +79,11 @@ class CubeController extends Controller
         foreach ($columns as $key => $column) {
             $fileId = App::make('fakeid')->decode($key);
             $file = $files->where('id', $fileId)->first();
-                $cube->attributes()->create([
-                    'type' => get_class($file),
-                    'name' => $file->id,
-                    'attributes' => ["file_id" => $file->id, "attributes" => $column],
-                ]);
+            $cube->attributes()->create([
+                'type' => get_class($file),
+                'name' => $file->id,
+                'attributes' => ['file_id' => $file->id, 'attributes' => $column],
+            ]);
         }
 
         $cube->folders()->attach([$folder]);
@@ -157,9 +157,9 @@ class CubeController extends Controller
      * @param  \App\Models\Cube  $cube
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Cube $cube, Organization $organization)
+    public function destroy(Organization $organization, Cube $cube)
     {
-        if ($cube->organization !== $organization->id) {
+        if ($cube->organization->id !== $organization->id) {
             return response()->json(['message' => 'Invalid cube for this organization.'], 400);
         }
 

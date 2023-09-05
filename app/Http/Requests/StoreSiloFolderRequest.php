@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Category;
 use App\Models\SiloFolder;
 use Illuminate\Validation\Rule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreSiloFolderRequest extends FormRequest
+class StoreSiloFolderRequest extends BaseRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -28,6 +28,14 @@ class StoreSiloFolderRequest extends FormRequest
             'description' => [
                 'string',
                 $this->isMethod('PATCH') ? 'sometimes' : null,
+            ],
+            'is_dataflow' => [
+                'boolean',
+                $this->isMethod('PATCH') ? 'sometimes' : null,
+            ],
+            'category_id' => [
+                'required',
+                Rule::exists(Category::class, 'id'),
             ],
         ];
     }

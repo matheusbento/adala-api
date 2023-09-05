@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreSiloFolderRequest;
-use App\Http\Resources\SiloFolderResource;
-use App\Models\Organization;
-use App\Models\SiloFolder;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Resources\CategoryResource;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class SiloFolderController extends Controller
+class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, Organization $organization)
+    public function index(Request $request)
     {
         $request->validate([
             'per_page' => [
@@ -39,7 +38,7 @@ class SiloFolderController extends Controller
             ],
         ]);
 
-        $builder = $organization->folders()->with($this->getRelationshipsToLoad())
+        $builder = Category::with($this->getRelationshipsToLoad())
             ->withCount($this->getRelationshipsToLoad())
             ->orderBy($request->input('order_by', 'name'), $request->input('direction', 'asc'));
 
@@ -47,78 +46,77 @@ class SiloFolderController extends Controller
             $builder->where('name', 'LIKE', "%{$search}%");
         }
 
-        $folders = $request->input('all') ? $builder->get() : $builder->paginate($request->input('per_page', intval(config('general.pagination_size'))))
+        $categorys = $request->input('all') ? $builder->get() : $builder->paginate($request->input('per_page', intval(config('general.pagination_size'))))
             ->appends($request->only(['per_page', 'order_by', 'direction', 'q']));
 
-        return SiloFolderResource::collection($folders);
+        return CategoryResource::collection($categorys);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreSiloFolderRequest  $request
+     * @param  \App\Http\Requests\StoreCategoryRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreSiloFolderRequest $request, Organization $organization)
+    public function store(StoreCategoryRequest $request)
     {
         $data = $request->validated();
         $data['owner_id'] = Auth::user()->id;
-        $data['organization_id'] = $organization->id;
-        $cube = $this->updateSiloFolder(new SiloFolder(), $data);
+        $cube = $this->updateCategory(new Category(), $data);
 
-        return new SiloFolderResource($cube);
+        return new CategoryResource($cube);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\SiloFolder  $folder
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function show(Organization $organization, SiloFolder $folder)
+    public function show(Category $category)
     {
-        return new SiloFolderResource($folder);
+        return new CategoryResource($category);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateSiloFolderRequest  $request
-     * @param  \App\Models\SiloFolder  $folder
+     * @param  \App\Http\Requests\UpdateCategoryRequest  $request
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(StoreSiloFolderRequest $request, Organization $organization, SiloFolder $folder)
+    public function update(StoreCategoryRequest $request, Category $category)
     {
         $data = $request->validated();
-        $folder = $this->updateSiloFolder($folder, $data);
+        $category = $this->updateCategory($category, $data);
 
-        return new SiloFolderResource($folder);
+        return new CategoryResource($category);
     }
 
-    private function updateSiloFolder(SiloFolder $folder, array $data)
+    private function updateCategory(Category $category, array $data)
     {
-        $folder->fill($data);
-        $folder->save();
+        $category->fill($data);
+        $category->save();
 
-        return $folder;
+        return $category;
     }
 
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\SiloFolder  $folder
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Organization $organization, SiloFolder $folder)
+    public function destroy(Category $category)
     {
         return [
-            'success' => $folder->delete(),
+            'success' => $category->delete(),
         ];
     }
 
     private function getRelationshipsToLoad()
     {
-        return ['category'];
+        return [];
     }
 }

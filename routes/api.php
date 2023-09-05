@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CubeController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\SiloFileController;
@@ -37,6 +38,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', [UserController::class, 'login']);
         Route::post('/register', [UserController::class, 'register']);
         Route::post('/logout', [UserController::class, 'logout']);
+    });
+
+    Route::group(['prefix' => 'categories'], function () {
+        Route::get('/', [CategoryController::class, 'index'])->middleware('auth:api');
+        Route::post('/', [CategoryController::class, 'store'])->middleware('auth:api');
     });
 
     Route::group(['prefix' => 'organizations'], function () {
