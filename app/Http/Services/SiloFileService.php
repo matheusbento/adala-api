@@ -2,13 +2,30 @@
 
 namespace App\Http\Services;
 
+use App\Http\Facades\DataProcessingService;
 use App\Http\Facades\PreProcessingService;
+use App\Jobs\ProcessDataflowByIdJob;
 use App\Models\SiloFile;
 use App\Models\SiloFileAttributes;
 use Exception;
 
 class SiloFileService
 {
+    public function processDataflowFile(SiloFile $siloFile)
+    {
+        $siloFile->setStatus(SiloFile::PROCESSING_STATUS);
+        $cubeIdentifier = 'SILO_' . $siloFile->folder->id;
+        $objectPaths = [['id' => $siloFile->id, 'path' => $siloFile->file->path]];
+        $objectColumns = $siloFile->attributes->all();
+
+        try {
+            DataProcessingService::get($cubeIdentifier, $objectPaths, $objectColumns, ['dataflow' => true]);
+            $siloFile->setStatus(SiloFile::READY_FOR_USE_STATUS);
+        } catch (Exception $e) {
+            $siloFile->setStatus(SiloFile::PROCESSING_ERROR_STATUS, $e->getMessage());
+        }
+
+    }
     public function preProcessByIds(array $siloFileIds)
     {
         $siloFiles = SiloFile::whereIn('id', $siloFileIds)->get();
@@ -54,6 +71,10 @@ class SiloFileService
                 }
 
                 $siloFile->setStatus(SiloFile::READY_FOR_USE_STATUS);
+
+                if($siloFile->folder->is_dataflow) {
+                    dispatch(new ProcessDataflowByIdJob($siloFile));
+                }
             } catch (Exception $e) {
                 $siloFile->setStatus(SiloFile::INVALID_STATUS, $e->getMessage());
             }

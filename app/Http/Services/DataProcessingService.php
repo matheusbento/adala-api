@@ -5,9 +5,9 @@ namespace App\Http\Services;
 use Exception;
 use Illuminate\Support\Facades\Http;
 
-class CubeProcessingService
+class DataProcessingService
 {
-    public function get(string $identifier, array $filesPaths, array $cubeAttributes)
+    public function get(string $identifier, array $filesPaths, array $cubeAttributes, array $extra = [])
     {
         try {
             $url = env('PROCESSING_HANDLER_URL', null);
@@ -24,6 +24,7 @@ class CubeProcessingService
                 'identifier' => $identifier,
                 'object_paths' => json_encode($filesPaths),
                 'attributes' => json_encode($cubeAttributes),
+                'extra' => json_encode($extra),
             ]);
 
             if($response->status() == 500) {

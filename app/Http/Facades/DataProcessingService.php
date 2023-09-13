@@ -4,10 +4,10 @@ namespace App\Http\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class CubeProcessingService extends Facade
+class DataProcessingService extends Facade
 {
     /**
-     * @see \App\Http\Services\CubeProcessingService
+     * @see \App\Http\Services\DataProcessingService
      *
      * Get the registered name of the component.
      *
@@ -15,6 +15,6 @@ class CubeProcessingService extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'cubeProcessingService';
+        return 'dataProcessingService';
     }
 }

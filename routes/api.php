@@ -53,6 +53,8 @@ Route::prefix('v1')->group(function () {
             Route::group(['prefix' => 'cubes'], function () {
                 Route::get('/', [CubeController::class, 'index'])->middleware('can:viewAny,App\Models\Cube');
                 Route::get('/{cube}', [CubeController::class, 'show'])->middleware('can:view,cube');
+                Route::get('/{cube}/attributes', [CubeController::class, 'attributes'])->middleware('can:view,cube');
+                Route::get('/{cube}/data', [CubeController::class, 'getData'])->middleware('can:view,cube');
                 Route::post('/', [CubeController::class, 'store'])->middleware('can:create,App\Models\Cube');
                 Route::put('/{cube}', [CubeController::class, 'update'])->middleware('can:update,cube');
                 Route::delete('/{cube}', [CubeController::class, 'destroy'])->middleware('can:delete,cube');

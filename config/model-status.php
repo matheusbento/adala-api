@@ -22,6 +22,7 @@ return [
             SiloFile::READY_FOR_USE_STATUS,
             SiloFile::PROCESSING_STATUS,
             SiloFile::INVALID_STATUS,
+            SiloFile::PROCESSING_ERROR_STATUS,
         ],
         'secondary' => [
 

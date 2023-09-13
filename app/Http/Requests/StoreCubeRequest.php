@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Category;
 use App\Models\Cube;
 use App\Models\CubeMetadata;
 use App\Models\SiloFile;
@@ -35,6 +36,14 @@ class StoreCubeRequest extends FormRequest
             'description' => [
                 'string',
                 $this->isMethod('PUT') ? 'sometimes' : null,
+            ],
+            'is_dataflow' => [
+                'boolean',
+                $this->isMethod('PATCH') ? 'sometimes' : null,
+            ],
+            'category_id' => [
+                'required',
+                Rule::exists(Category::class, 'id'),
             ],
             'start_date' => [
                 'sometimes',
@@ -77,7 +86,7 @@ class StoreCubeRequest extends FormRequest
                 },
             ],
             'columns' => [
-                $this->isMethod('PUT') ? 'sometimes' : 'required',
+                'required_without:is_dataflow',
                 'array',
                 function ($attribute, $value, $fail) {
                     $keys = array_keys($value);

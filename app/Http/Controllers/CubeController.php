@@ -8,9 +8,13 @@ use App\Jobs\ProcessLoadCubeByIdJob;
 use App\Models\Cube;
 use App\Models\Organization;
 use App\Models\SiloFile;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 
 class CubeController extends Controller
@@ -88,11 +92,19 @@ class CubeController extends Controller
 
         $cube->folders()->attach([$folder]);
 
-        $cube->setStatus(Cube::CREATING_STATUS);
-        $historyType = Cube::CREATED_HISTORY_TYPE;
-        $cube->addHistory($historyType, Cube::HISTORY_MESSAGES[$historyType]);
-
-        dispatch(new ProcessLoadCubeByIdJob($cube));
+        if(!$cube->is_dataflow) {
+            $cube->setStatus(Cube::CREATING_STATUS);
+            $historyType = Cube::CREATED_HISTORY_TYPE;
+            $cube->addHistory($historyType, Cube::HISTORY_MESSAGES[$historyType]);
+            dispatch(new ProcessLoadCubeByIdJob($cube));
+        } else {
+            $cube->setStatus(Cube::CREATING_STATUS);
+            $historyType = Cube::CREATED_HISTORY_TYPE;
+            $cube->addHistory($historyType, Cube::HISTORY_MESSAGES[$historyType]);
+            $cube->setStatus(Cube::READY_TO_ANALYSIS_STATUS);
+            $historyType = Cube::CUBE_READY_TO_ANALYSIS_HISTORY_TYPE;
+            $cube->addHistory($historyType, Cube::HISTORY_MESSAGES[$historyType]);
+        }
 
         return new CubeResource($cube->load(['metadata']));
     }
@@ -168,8 +180,73 @@ class CubeController extends Controller
         ];
     }
 
+    /**
+     * get the specified resource in storage.
+     *
+     * @param  \App\Models\Cube  $cube
+     * @return \Illuminate\Http\Response
+     */
+    public function attributes(Organization $organization, Cube $cube)
+    {
+
+        if($cube->is_dataflow) {
+            $folderId = $cube->folders()->first()->id;
+            Config::set('database.connections.timescale.database', "silo_{$folderId}");
+        } else {
+            Config::set('database.connections.timescale.database', "cube_{$cube->id}");
+        }
+
+        DB::purge('timescale');
+        DB::reconnect('timescale');
+        $connection = DB::connection('timescale');
+
+        $builder = $connection->getSchemaBuilder();
+        $columns = $builder->getColumnListing('main');
+        return ['attributes' => $columns];
+    }
+
+    /**
+     * getdata the specified resource in storage.
+     *
+     * @param  \App\Models\Cube  $cube
+     * @return \Illuminate\Http\Response
+     */
+    public function getData(Organization $organization, Cube $cube, Request $request)
+    {
+
+        if($cube->is_dataflow) {
+            try {
+                $url = env('GET_DATA_HANDLER_URL', null);
+                if (!$url) {
+                    throw new Exception('GET DATA API URL NOT DEFINED');
+                }
+
+                // dd($url, [
+                //     'identifier' => $identifier,
+                //     'object_paths' => json_encode($filesPaths),
+                //     'attributes' => json_encode($cubeAttributes),
+                // ]);
+                $response = Http::timeout(3600)->get($url, [
+                    'identifier' => "silo_{$cube->folders()->first()->id}",
+                    ...$request->all(),
+                ]);
+
+                if($response->status() == 500) {
+                    throw new Exception("File doesn't exists");
+                }
+
+                return (object) $response->json();
+            } catch (Exception $e) {
+                dump($e);
+                throw $e;
+            }
+        }
+
+        return [];
+    }
+
     private function getRelationshipsToLoad()
     {
-        return [];
+        return ['folders'];
     }
 }

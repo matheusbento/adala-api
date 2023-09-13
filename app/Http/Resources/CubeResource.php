@@ -20,6 +20,8 @@ class CubeResource extends JsonResource
             'current_status' => $this->current_status,
             'name' => $this->name,
             'description' => $this->description,
+            'is_dataflow' => $this->is_dataflow,
+            'folders' => $this->whenLoaded('folders', SiloFolderResource::collection($this->folders)),
             'files' => $this->whenLoaded('files', SiloFileResource::collection($this->files)),
             'metadata' => $this->whenLoaded('metadata', CubeMetadataResource::collection($this->metadata)),
             'history' => $this->whenLoaded('history', HistoryEntryResource::collection($this->history)),

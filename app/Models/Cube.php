@@ -31,10 +31,12 @@ class Cube extends Model
 
     public const CREATED_HISTORY_TYPE = 'cube_was_created';
     public const EDITED_HISTORY_TYPE = 'cube_was_edited';
+    public const CUBE_READY_TO_ANALYSIS_HISTORY_TYPE = 'cube_is_ready_to_analysis';
 
     public const HISTORY_MESSAGES = [
         self::CREATED_HISTORY_TYPE => 'Cube was created',
         self::EDITED_HISTORY_TYPE => 'Cube was edited',
+        self::CUBE_READY_TO_ANALYSIS_HISTORY_TYPE => 'Cube is ready to analysis',
     ];
 
     protected $fillable = [
@@ -43,6 +45,8 @@ class Cube extends Model
         'description',
         'user_id',
         'organization_id',
+        'is_dataflow',
+        'category_id',
     ];
 
     public static function boot()
