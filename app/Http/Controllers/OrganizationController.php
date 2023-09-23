@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrganizationRequest;
-use App\Http\Requests\UpdateOrganizationRequest;
 use App\Http\Resources\OrganizationResource;
 use App\Models\Organization;
 use Illuminate\Http\Request;
@@ -39,14 +38,14 @@ class OrganizationController extends Controller
             ],
         ]);
 
-        $builder = Organization::whereIAmOwner()->orWhereHas('users', function ($q){
+        $builder = Organization::whereIAmOwner()->orWhereHas('users', function ($q) {
             $q->where('user_id', Auth::user()->id);
         })->with($this->getRelationshipsToLoad())
             ->withCount($this->getRelationshipsToLoad())
             ->orderBy($request->input('order_by', 'name'), $request->input('direction', 'asc'));
 
         if ($search = $request->input('q')) {
-            $builder->where('name', 'LIKE', "%$search%");
+            $builder->where('name', 'LIKE', "%{$search}%");
         }
 
         $organizations = $request->input('all') ? $builder->get() : $builder->paginate($request->input('per_page', intval(config('general.pagination_size'))))
@@ -84,11 +83,11 @@ class OrganizationController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateOrganizationRequest  $request
+     * @param  \App\Http\Requests\StoreOrganizationRequest  $request
      * @param  \App\Models\Organization  $organization
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateOrganizationRequest $request, Organization $organization)
+    public function update(StoreOrganizationRequest $request, Organization $organization)
     {
         $data = $request->validated();
         $organization = $this->updateOrganization($organization, $data);
@@ -118,7 +117,8 @@ class OrganizationController extends Controller
         ];
     }
 
-    private function getRelationshipsToLoad() {
+    private function getRelationshipsToLoad()
+    {
         return [];
     }
 }

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CubeController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\OrganizationUserController;
 use App\Http\Controllers\SiloFileController;
 use App\Http\Controllers\SiloFolderController;
 use Illuminate\Http\Request;
@@ -49,6 +50,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/', [OrganizationController::class, 'index'])->middleware('can:viewAny,App\Models\Organization');
 
         Route::group(['prefix' => '{organization}'], function () {
+            Route::put('/', [OrganizationController::class, 'update'])->middleware('can:update,organization');
             Route::get('/', [OrganizationController::class, 'show'])->middleware('can:view,organization');
             Route::group(['prefix' => 'cubes'], function () {
                 Route::get('/', [CubeController::class, 'index'])->middleware('can:viewAny,App\Models\Cube');
@@ -77,9 +79,18 @@ Route::prefix('v1')->group(function () {
 
                 Route::get('/{folder}', [SiloFolderController::class, 'show'])->middleware('can:view,folder');
             });
+
+            Route::group(['prefix' => 'users'], function () {
+                Route::get('/', [OrganizationUserController::class, 'index'])->middleware('can:viewAny,App\Models\User');
+                Route::get('/{user}', [OrganizationUserController::class, 'show'])->middleware('can:view,user');
+                Route::post('/', [OrganizationUserController::class, 'store'])->middleware('can:create,App\Models\User');
+                Route::put('/{user}', [OrganizationUserController::class, 'update'])->middleware('can:update,user');
+                Route::delete('/{user}', [OrganizationUserController::class, 'destroy'])->middleware('can:delete,user');
+            });
         });
-        Route::post('/', [OrganizationController::class, 'create'])->middleware('can:create,App\Models\Organization');
-        Route::put('/{organization}', [OrganizationController::class, 'update'])->middleware('can:update,organization');
+        Route::post('/', [OrganizationController::class, 'store'])->middleware('can:create,App\Models\Organization');
         Route::delete('/{organization}', [OrganizationController::class, 'destroy'])->middleware('can:delete,organization');
     });
+
+
 });

@@ -25,6 +25,7 @@ class CubeResource extends JsonResource
             'files' => $this->whenLoaded('files', SiloFileResource::collection($this->files)),
             'metadata' => $this->whenLoaded('metadata', CubeMetadataResource::collection($this->metadata)),
             'history' => $this->whenLoaded('history', HistoryEntryResource::collection($this->history)),
+            'category' => $this->whenLoaded('category', new CategoryResource($this->category)),
         ];
     }
 }

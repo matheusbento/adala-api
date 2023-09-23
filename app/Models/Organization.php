@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Propaganistas\LaravelFakeId\RoutesWithFakeIds;
 
@@ -14,16 +15,17 @@ class Organization extends Model
 {
     use HasFactory;
     use RoutesWithFakeIds;
+    use SoftDeletes;
 
     public static function boot()
     {
         parent::boot();
 
-        self::created(function($model){
-            $this->folders()->create([
-                'name' => "Default Folder",
-                'description' => "Default",
-                'owner_id' => $this->owner->id,
+        self::created(function ($model) {
+            $model->folders()->create([
+                'name' => 'Default Folder',
+                'description' => 'Default',
+                'owner_id' => $model->owner->id,
             ]);
         });
     }
@@ -41,7 +43,8 @@ class Organization extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function getFakeIdAttribute() {
+    public function getFakeIdAttribute()
+    {
         return $this->getRouteKey();
     }
 

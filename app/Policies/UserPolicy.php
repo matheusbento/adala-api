@@ -7,7 +7,7 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class OrganizationPolicy
+class UserPolicy
 {
     use HandlesAuthorization;
 
@@ -19,7 +19,7 @@ class OrganizationPolicy
       */
     public function viewAny(User $user)
     {
-        return $user->can(Permissions::BASLAKE_ORGANIZATIONS_ACCESS);
+        return $user->can(Permissions::BASLAKE_ORGANIZATIONS_MANAGE);
     }
 
     /**
@@ -31,7 +31,7 @@ class OrganizationPolicy
      */
     public function view(User $user, Organization $organization)
     {
-        return $user->hasPermissionTo(Permissions::BASLAKE_ORGANIZATIONS_ACCESS, null, $organization);
+        return $user->hasPermissionTo(Permissions::BASLAKE_ORGANIZATIONS_MANAGE, null, $organization);
     }
 
     /**

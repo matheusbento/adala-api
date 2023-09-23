@@ -247,6 +247,6 @@ class CubeController extends Controller
 
     private function getRelationshipsToLoad()
     {
-        return ['folders'];
+        return ['folders', 'category'];
     }
 }

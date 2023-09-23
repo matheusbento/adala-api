@@ -78,6 +78,11 @@ class Cube extends Model
         return $this->belongsTo(Organization::class, 'organization_id');
     }
 
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
     public function metadata(): HasMany
     {
         return $this->hasMany(CubeMetadata::class, 'cube_id');

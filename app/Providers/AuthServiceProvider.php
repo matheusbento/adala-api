@@ -3,10 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Organization;
+use App\Models\User;
 use App\Policies\CubePolicy;
 use App\Policies\OrganizationPolicy;
+use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,7 @@ class AuthServiceProvider extends ServiceProvider
         // 'App\Models\Model' => 'App\Policies\ModelPolicy',
         Cube::class => CubePolicy::class,
         Organization::class => OrganizationPolicy::class,
+        User::class => UserPolicy::class,
     ];
 
     /**

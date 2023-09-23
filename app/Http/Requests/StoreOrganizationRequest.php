@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Organization;
+use Illuminate\Validation\Rule;
 
-class StoreOrganizationRequest extends FormRequest
+class StoreOrganizationRequest extends BaseRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,7 +15,15 @@ class StoreOrganizationRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'name' => [
+                'string',
+                $this->isMethod('PUT') ? 'sometimes' : null,
+                Rule::unique(Organization::class, 'name')->ignore($this->organization),
+            ],
+            'description' => [
+                'string',
+                $this->isMethod('PUT') ? 'sometimes' : null,
+            ],
         ];
     }
 }
