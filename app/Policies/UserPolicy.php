@@ -3,7 +3,6 @@
 namespace App\Policies;
 
 use App\Constants\Permissions;
-use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -29,9 +28,9 @@ class UserPolicy
      * @param  \App\Models\Organization  $organization
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Organization $organization)
+    public function view(User $user, User $userContext)
     {
-        return $user->hasPermissionTo(Permissions::BASLAKE_ORGANIZATIONS_MANAGE, null, $organization);
+        return $user->can(Permissions::BASLAKE_ORGANIZATIONS_MANAGE);
     }
 
     /**
@@ -52,9 +51,9 @@ class UserPolicy
      * @param  \App\Models\Organization  $organization
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function update(User $user, Organization $organization)
+    public function update(User $user, User $userContext)
     {
-        return $user->hasPermissionTo(Permissions::BASLAKE_ORGANIZATIONS_MANAGE, null, $organization);
+        return $user->can(Permissions::BASLAKE_ORGANIZATIONS_MANAGE);
     }
 
     /**
@@ -64,7 +63,7 @@ class UserPolicy
      * @param  \App\Models\Organization  $organization
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, Organization $organization)
+    public function delete(User $user, User $userContext)
     {
         return $user->can(Permissions::BASLAKE_ORGANIZATIONS_MANAGE);
     }
@@ -76,9 +75,9 @@ class UserPolicy
      * @param  \App\Models\Organization  $organization
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function restore(User $user, Organization $organization)
+    public function restore(User $user, User $userContext)
     {
-        return $this->update($user, $organization);
+        return $this->update($user, $userContext);
     }
 
     /**
@@ -88,7 +87,7 @@ class UserPolicy
      * @param  \App\Models\Organization  $organization
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function forceDelete(User $user, Organization $organization)
+    public function forceDelete(User $user, User $userContext)
     {
         return false;
     }

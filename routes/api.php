@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CubeController;
+use App\Http\Controllers\CubeDashboardItemController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationUserController;
 use App\Http\Controllers\SiloFileController;
@@ -53,7 +54,14 @@ Route::prefix('v1')->group(function () {
             Route::put('/', [OrganizationController::class, 'update'])->middleware('can:update,organization');
             Route::get('/', [OrganizationController::class, 'show'])->middleware('can:view,organization');
             Route::group(['prefix' => 'cubes'], function () {
-                Route::get('/', [CubeController::class, 'index'])->middleware('can:viewAny,App\Models\Cube');
+                Route::group(['prefix' => '/{cube}/dashboard/items'], function () {
+                    Route::get('/', [CubeDashboardItemController::class, 'index'])->middleware('can:viewAny,App\Models\CubeDashboardItem');
+                    Route::get('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'show'])->middleware('can:view,cubeDashboardItem');
+                    Route::post('/', [CubeDashboardItemController::class, 'store'])->middleware('can:create,App\Models\CubeDashboardItem');
+                    Route::put('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'update'])->middleware('can:update,cubeDashboardItem');
+                    Route::delete('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'destroy'])->middleware('can:delete,cubeDashboardItem');
+                });
+                Route::get('/', [CubeController::class, 'index'])->middleware('can:viewAny,App\Models\CubeDashboardItem');
                 Route::get('/{cube}', [CubeController::class, 'show'])->middleware('can:view,cube');
                 Route::get('/{cube}/attributes', [CubeController::class, 'attributes'])->middleware('can:view,cube');
                 Route::get('/{cube}/data', [CubeController::class, 'getData'])->middleware('can:view,cube');

@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCubeRequest;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
-use App\Models\Cube;
 use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 class OrganizationUserController extends Controller
@@ -56,87 +55,72 @@ class OrganizationUserController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreCubeRequest  $request
+     * @param  \App\Http\Requests\StoreUserRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreCubeRequest $request, Organization $organization)
+    public function store(StoreUserRequest $request, Organization $organization)
     {
         $data = $request->validated();
 
-        $data['organization_id'] = $organization->id;
-        $cube = $this->updateOrganizationUser(new Cube(), $data);
+        $user = $this->updateOrganizationUser($organization, new User(), $data);
 
-        return new UserResource($cube->load(['metadata']));
+        return new UserResource($user);
     }
 
     /**
      * get the specified resource in storage.
      *
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function show(Organization $organization, Cube $cube)
+    public function show(Request $request, Organization $organization, User $user)
     {
-        return new UserResource($cube->load(['metadata', 'history', 'files']));
+        return new UserResource($user);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\StoreCubeRequest  $request
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Http\Requests\StoreUserRequest  $request
+     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function update(StoreCubeRequest $request, Organization $organization, Cube $cube)
+    public function update(StoreUserRequest $request, Organization $organization, User $user)
     {
-        abort_if($organization->id !== $cube->organization_id, 402, 'You don\'t belongs to this organization!');
+        // abort_if($organization->id !== $user->organization_id, 402, 'You don\'t belongs to this organization!');
         $data = $request->validated();
-        $cube = $this->updateOrganizationUser($cube, $data);
-
-        $historyType = Cube::EDITED_HISTORY_TYPE;
-        $cube->addHistory($historyType, Cube::HISTORY_MESSAGES[$historyType]);
-
-        return new UserResource($cube->load(['metadata']));
+        $user = $this->updateOrganizationUser($organization, $user, $data);
+        return new UserResource($user);
     }
 
-    private function updateOrganizationUser(Cube $cube, array $data)
+    private function updateOrganizationUser(Organization $organization, User $user, array $data)
     {
-        $cube->fill($data);
+        $user->fill($data);
+        $user->save();
 
-        $cube->save();
+        if (isset($data['direct_permissions'])) {
+            $user->syncPermissions($data['direct_permissions'], $organization);
+        }
 
-        $cube->metadata()->delete();
+        $user->organizations()->syncWithoutDetaching($organization);
 
-        // update metadata
-        $metadata = [];
-        $metadata[] = [
-            'field' => 'start_date',
-            'value' => Arr::get($data, 'start_date'),
-        ];
-        $metadata[] = [
-            'field' => 'end_date',
-            'value' => Arr::get($data, 'end_date'),
-        ];
-        $metadata = array_merge($metadata, Arr::get($data, 'metadata', []));
-        $cube->metadata()->createMany($metadata);
-
-        return $cube;
+        $user = $user->refresh();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Cube  $cube
+     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Organization $organization, Cube $cube)
+    public function destroy(Organization $organization, User $user)
     {
-        if ($cube->organization->id !== $organization->id) {
-            return response()->json(['message' => 'Invalid cube for this organization.'], 400);
-        }
+        // if ($user->organization->id !== $organization->id) {
+        //     return response()->json(['message' => 'Invalid cube for this organization.'], 400);
+        // }
 
         return [
-            'success' => $cube->delete(),
+            'success' => $user->delete(),
         ];
     }
 
