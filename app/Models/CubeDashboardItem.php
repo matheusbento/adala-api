@@ -11,7 +11,7 @@ class CubeDashboardItem extends Model
 {
     use HasFactory;
 
-    protected $table = 'cube_dashboard_item';
+    protected $table = 'cube_dashboard_items';
 
     protected $casts = [
         'select' => JsonCast::class,
@@ -20,6 +20,7 @@ class CubeDashboardItem extends Model
     ];
 
     protected $fillable = [
+        'cube_id',
         'name',
         'chart',
         'processing_method',

@@ -15,7 +15,7 @@ class CubeDashboardItemResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->fake_id,
+            'id' => $this->id,
             'name' => $this->name,
             'chart' => $this->chart,
             'processing_method' => $this->processing_method,

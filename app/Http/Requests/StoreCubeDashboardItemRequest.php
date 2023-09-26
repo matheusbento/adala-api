@@ -26,15 +26,15 @@ class StoreCubeDashboardItemRequest extends FormRequest
                 'string',
             ],
             'select' => [
-                'string',
+                'array',
                 $this->isMethod('PUT') ? 'sometimes' : null,
             ],
             'filter' => [
-                'string',
+                'array',
                 $this->isMethod('PUT') ? 'sometimes' : null,
             ],
             'layout' => [
-                'string',
+                'array',
                 $this->isMethod('PUT') ? 'sometimes' : null,
             ],
         ];

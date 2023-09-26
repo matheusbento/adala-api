@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCubeDashboardItemRequest;
 use App\Http\Resources\CubeDashboardItemResource;
 use App\Models\Cube;
 use App\Models\CubeDashboardItem;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -16,7 +17,7 @@ class CubeDashboardItemController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Organization $organization, Request $request)
     {
         $request->validate([
             'per_page' => [
@@ -57,7 +58,7 @@ class CubeDashboardItemController extends Controller
      * @param  \App\Http\Requests\StoreCubeDashboardItemRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreCubeDashboardItemRequest $request, Cube $cube)
+    public function store(StoreCubeDashboardItemRequest $request, Organization $organization, Cube $cube)
     {
         $data = $request->validated();
         $data['cube_id'] = $cube->id;
@@ -72,7 +73,7 @@ class CubeDashboardItemController extends Controller
      * @param  \App\Models\CubeDashboardItem  $cubeDashboardItem
      * @return \Illuminate\Http\Response
      */
-    public function show(CubeDashboardItem $cubeDashboardItem, Cube $cube)
+    public function show(CubeDashboardItem $cubeDashboardItem, Organization $organization, Cube $cube)
     {
         return new CubeDashboardItemResource($cubeDashboardItem);
     }
@@ -84,7 +85,7 @@ class CubeDashboardItemController extends Controller
      * @param  \App\Models\CubeDashboardItem  $cubeDashboardItem
      * @return \Illuminate\Http\Response
      */
-    public function update(StoreCubeDashboardItemRequest $request, Cube $cube, CubeDashboardItem $cubeDashboardItem)
+    public function update(StoreCubeDashboardItemRequest $request, Organization $organization, Cube $cube, CubeDashboardItem $cubeDashboardItem)
     {
         $data = $request->validated();
         $cubeDashboardItem = $this->updateCubeDashboardItem($cubeDashboardItem, $data);
@@ -107,7 +108,7 @@ class CubeDashboardItemController extends Controller
      * @param  \App\Models\CubeDashboardItem  $cubeDashboardItem
      * @return \Illuminate\Http\Response
      */
-    public function destroy(CubeDashboardItem $cubeDashboardItem)
+    public function destroy(Organization $organization, Cube $cube, CubeDashboardItem $cubeDashboardItem)
     {
         return [
             'success' => $cubeDashboardItem->delete(),

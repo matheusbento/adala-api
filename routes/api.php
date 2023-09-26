@@ -61,7 +61,7 @@ Route::prefix('v1')->group(function () {
                     Route::put('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'update'])->middleware('can:update,cubeDashboardItem');
                     Route::delete('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'destroy'])->middleware('can:delete,cubeDashboardItem');
                 });
-                Route::get('/', [CubeController::class, 'index'])->middleware('can:viewAny,App\Models\CubeDashboardItem');
+                Route::get('/', [CubeController::class, 'index'])->middleware('can:viewAny,App\Models\Cube');
                 Route::get('/{cube}', [CubeController::class, 'show'])->middleware('can:view,cube');
                 Route::get('/{cube}/attributes', [CubeController::class, 'attributes'])->middleware('can:view,cube');
                 Route::get('/{cube}/data', [CubeController::class, 'getData'])->middleware('can:view,cube');

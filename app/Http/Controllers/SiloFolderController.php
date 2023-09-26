@@ -41,7 +41,7 @@ class SiloFolderController extends Controller
 
         $builder = $organization->folders()->with($this->getRelationshipsToLoad())
             ->withCount($this->getRelationshipsToLoad())
-            ->orderBy($request->input('order_by', 'name'), $request->input('direction', 'asc'));
+            ->orderBy($request->input('order_by', 'id'), $request->input('direction', 'desc'));
 
         if ($search = $request->input('q')) {
             $builder->where('name', 'LIKE', "%{$search}%");

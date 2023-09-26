@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\CubeDashboardItem;
 use App\Models\Organization;
 use App\Models\User;
+use App\Policies\CubeDashboardItemPolicy;
 use App\Policies\CubePolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\UserPolicy;
@@ -20,6 +22,7 @@ class AuthServiceProvider extends ServiceProvider
         // 'App\Models\Model' => 'App\Policies\ModelPolicy',
         Cube::class => CubePolicy::class,
         Organization::class => OrganizationPolicy::class,
+        CubeDashboardItem::class => CubeDashboardItemPolicy::class,
         User::class => UserPolicy::class,
     ];
 
