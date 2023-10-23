@@ -36,7 +36,7 @@ class StoreSiloFileRequest extends BaseRequest
                 'required',
                 Rule::exists(Tag::class, 'id'),
             ],
-            'file' => [
+            'files' => [
                 $this->id ? 'sometimes' : null,
                 'required',
             ],

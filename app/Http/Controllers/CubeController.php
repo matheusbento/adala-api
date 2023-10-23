@@ -6,8 +6,10 @@ use App\Http\Requests\StoreCubeRequest;
 use App\Http\Resources\CubeResource;
 use App\Jobs\ProcessLoadCubeByIdJob;
 use App\Models\Cube;
+use App\Models\LogAccess;
 use App\Models\Organization;
 use App\Models\SiloFile;
+use Cache;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -190,8 +192,9 @@ class CubeController extends Controller
     {
 
         if($cube->is_dataflow) {
-            $folderId = $cube->folders()->first()->id;
-            Config::set('database.connections.timescale.database', "silo_{$folderId}");
+            $siloFolder = $cube->folders()->first();
+            $siloFolder->addLog(LogAccess::SILO_FOLDER_ATTRIBUTE_TYPE);
+            Config::set('database.connections.timescale.database', "silo_{$siloFolder->id}");
         } else {
             Config::set('database.connections.timescale.database', "cube_{$cube->id}");
         }
@@ -205,6 +208,13 @@ class CubeController extends Controller
         return ['attributes' => $columns];
     }
 
+    public function requestToString(array $request_array)
+    {
+        ksort($request_array);
+        return str_replace(':', '=', json_encode($request_array));
+    }
+
+
     /**
      * getdata the specified resource in storage.
      *
@@ -216,6 +226,8 @@ class CubeController extends Controller
 
         if($cube->is_dataflow) {
             try {
+                $siloFolder = $cube->folders()->first();
+                $siloFolder->addLog(LogAccess::CUBE_ITEM_VIEW_TYPE);
                 $url = env('GET_DATA_HANDLER_URL', null);
                 if (!$url) {
                     throw new Exception('GET DATA API URL NOT DEFINED');
@@ -226,16 +238,36 @@ class CubeController extends Controller
                 //     'object_paths' => json_encode($filesPaths),
                 //     'attributes' => json_encode($cubeAttributes),
                 // ]);
-                $response = Http::timeout(3600)->get($url, [
-                    'identifier' => "silo_{$cube->folders()->first()->id}",
-                    ...$request->all(),
+
+                $data = Cache::remember(
+                    'cube-data-' . $siloFolder->id . ':' . $this->requestToString($request->all()),
+                    config('cache.ttl'),
+                    function () use ($request, $url, $siloFolder) {
+                        $response = Http::timeout(3600)->get($url, [
+                            'identifier' => "silo_{$siloFolder->id}",
+                            ...$request->all(),
+                        ]);
+
+                        if($response->status() == 500) {
+                            throw new Exception("File doesn't exists");
+                        }
+
+                        $contentTypeHeader = $response->header('Content-Type');
+                        $parts = explode(';', $contentTypeHeader);
+                        $mediaType = trim($parts[0]);
+
+                        $data = json_encode($response->body());
+                        return (object) ['mimetype' => $mediaType, 'json' => gzencode($data)];
+                    }
+                );
+
+                return response($data->json, 200, [
+                    'Content-Encoding' => 'gzip',
+                    'Content-Type' => 'application/json',
+                    'x-file-type' => $data->mimetype,
+                    'Access-Control-Expose-Headers' => 'x-file-type',
                 ]);
 
-                if($response->status() == 500) {
-                    throw new Exception("File doesn't exists");
-                }
-
-                return (object) $response->json();
             } catch (Exception $e) {
                 dump($e);
                 throw $e;

@@ -102,4 +102,9 @@ class Cube extends Model
     {
         return $this->belongsToMany(SiloFolder::class, 'cube_folders', 'cube_id');
     }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(CubeDashboardItem::class, 'cube_id');
+    }
 }

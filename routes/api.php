@@ -57,6 +57,7 @@ Route::prefix('v1')->group(function () {
                 Route::group(['prefix' => '/{cube}/dashboard/items'], function () {
                     Route::get('/', [CubeDashboardItemController::class, 'index'])->middleware('can:viewAny,App\Models\CubeDashboardItem');
                     Route::get('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'show'])->middleware('can:view,cubeDashboardItem');
+                    Route::get('/{cubeDashboardItem}/download', [CubeDashboardItemController::class, 'download'])->middleware('can:view,cubeDashboardItem');
                     Route::post('/', [CubeDashboardItemController::class, 'store'])->middleware('can:create,App\Models\CubeDashboardItem');
                     Route::put('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'update'])->middleware('can:update,cubeDashboardItem');
                     Route::delete('/{cubeDashboardItem}', [CubeDashboardItemController::class, 'destroy'])->middleware('can:delete,cubeDashboardItem');
@@ -71,6 +72,7 @@ Route::prefix('v1')->group(function () {
             });
 
             Route::group(['prefix' => 'folders'], function () {
+                Route::get('/summary', [SiloFolderController::class, 'summary'])->middleware('can:viewAny,App\Models\SiloFolder');
                 Route::get('/', [SiloFolderController::class, 'index'])->middleware('can:viewAny,App\Models\SiloFolder');
                 Route::post('/', [SiloFolderController::class, 'store'])->middleware('can:create,App\Models\SiloFolder');
                 Route::put('/{folder}', [SiloFolderController::class, 'update'])->middleware('can:update,folder');

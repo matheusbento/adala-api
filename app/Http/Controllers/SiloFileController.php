@@ -71,13 +71,18 @@ class SiloFileController extends Controller
     public function store(StoreSiloFileRequest $request, Organization $organization, SiloFolder $folder)
     {
         $data = $request->validated();
-        $file = $request->file('file');
-        $data['file'] = $file;
-        $data['owner_id'] = Auth::user()->id;
-        $data['folder_id'] = $folder->id;
-        $cube = $this->updateSiloFile(new SiloFile(), $organization, $request, $data);
+        $files = $request->file('files');
+        $siloFiles = [];
+        foreach ($files as $key => $file) {
+            $tmpData = $data;
+            $tmpData['file'] = $file;
+            $tmpData['owner_id'] = Auth::user()->id;
+            $tmpData['folder_id'] = $folder->id;
+            $tmpData['name'] = $tmpData['name'] . ' - ' . Carbon::now()->timestamp;
+            $siloFiles[] = $this->updateSiloFile(new SiloFile(), $organization, $request, $tmpData);
+        }
 
-        return new SiloFileResource($cube);
+        return SiloFileResource::collection($siloFiles);
     }
 
     /**
@@ -155,8 +160,8 @@ class SiloFileController extends Controller
     {
         $siloFile->fill($data);
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
+        if (isset($data['file'])) {
+            $file = $data['file'];
 
             /* Check file type */
             $file_mime = $file->getMimeType();
@@ -166,7 +171,7 @@ class SiloFileController extends Controller
             $file_size = $file->getSize();
             abort_if($file_size > config('filesystems.max_size.silo'), 402, 'File size is too large. Please try again.');
 
-            $uploadedDocument = $siloFile->uploadFile($request->file('file'));
+            $uploadedDocument = $siloFile->uploadFile($file);
 
             $documentFile = File::create(
                 array_merge($uploadedDocument, [

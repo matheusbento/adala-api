@@ -8,6 +8,8 @@ use App\Models\Cube;
 use App\Models\CubeDashboardItem;
 use App\Models\Organization;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CubeDashboardItemController extends Controller
@@ -17,7 +19,7 @@ class CubeDashboardItemController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Organization $organization, Request $request)
+    public function index(Request $request, Organization $organization, Cube $cube)
     {
         $request->validate([
             'per_page' => [
@@ -39,7 +41,7 @@ class CubeDashboardItemController extends Controller
             ],
         ]);
 
-        $builder = CubeDashboardItem::with($this->getRelationshipsToLoad())
+        $builder = $cube->items()->with($this->getRelationshipsToLoad())
             ->orderBy($request->input('order_by', 'name'), $request->input('direction', 'asc'));
 
         if ($search = $request->input('q')) {
@@ -75,6 +77,28 @@ class CubeDashboardItemController extends Controller
      */
     public function show(CubeDashboardItem $cubeDashboardItem, Organization $organization, Cube $cube)
     {
+        return new CubeDashboardItemResource($cubeDashboardItem);
+    }
+
+    /**
+     * Download the specified resource.
+     *
+     * @param  \App\Models\CubeDashboardItem  $cubeDashboardItem
+     * @return \Illuminate\Http\Response
+     */
+    public function download(Request $request, Organization $organization, Cube $cube, CubeDashboardItem $cubeDashboardItem)
+    {
+        if($cube->is_dataflow) {
+            $folderId = $cube->folders()->first()->id;
+            Config::set('database.connections.timescale.database', "silo_{$folderId}");
+        } else {
+            Config::set('database.connections.timescale.database', "cube_{$cube->id}");
+        }
+
+        DB::purge('timescale');
+        DB::reconnect('timescale');
+        $connection = DB::connection('timescale');
+
         return new CubeDashboardItemResource($cubeDashboardItem);
     }
 
