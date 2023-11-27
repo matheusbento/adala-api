@@ -25,45 +25,6 @@ services:
     ports:
       - 8080:8080
   
-  mongo:
-    image: mongo:4.2
-    container_name: "baslake-mongo"
-    restart: always
-    networks: 
-      - baslake
-    env_file: 
-      - .env
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodata:/data/db
-
-  mongo-express:
-    image: mongo-express
-    container_name: "baslake-mongo-express"
-    restart: always
-    networks: 
-      - baslake
-    ports:
-      - 8081:8081
-    env_file: 
-      - .env
-    volumes: 
-      - ./docker/mongo-express/config.js:/node_modules/mongo-express/config.js
-
-  rabbitmq:
-    container_name: "baslake-rabbitmq"
-    image: "rabbitmq:3-management"
-    networks: 
-      - baslake
-    env_file: 
-      - .env
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq:/data'
-
   logs:
     image: amir20/dozzle:latest
     container_name: baslake-log
